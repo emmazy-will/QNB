@@ -411,31 +411,38 @@ const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden fixed inset-0 bg-white z-40 pt-20 px-6">
-          <div className="flex flex-col space-y-6">
-            <div className="flex items-center space-x-2 border-b pb-4">
-              <User className="text-gray-600" size={20} />
-              <span className="text-gray-700 font-medium">{user?.name}</span>
-            </div>
-            <div className="relative">
-              <Bell className="text-gray-600 cursor-pointer hover:text-gray-800" size={20} />
-              {alertsCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {alertsCount}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={logout}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <LogOut size={20} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      )}
+     {isMenuOpen && (
+  <div className="lg:hidden fixed inset-0 bg-white z-40 pt-20 px-6">
+    <div className="flex flex-col space-y-6">
+      <div className="flex items-center space-x-2 border-b pb-4">
+        <User className="text-gray-600" size={20} />
+        <span className="text-gray-700 font-medium">{user?.name}</span>
+      </div>
+      
+      <Link 
+        to="/notification" 
+        className="relative flex items-center"
+        onClick={() => setIsMenuOpen(false)} // Close menu when navigating
+      >
+        <Bell className="text-gray-600 hover:text-gray-800" size={20} />
+        {alertsCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {alertsCount}
+          </span>
+        )}
+        <span className="ml-3 text-gray-700">Notifications</span>
+      </Link>
+      
+      <button
+        onClick={logout}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+      >
+        <LogOut size={20} />
+        <span>Logout</span>
+      </button>
+    </div>
+  </div>
+)}
 
       {/* Top Navigation Bar */}
       <div className="bg-white shadow-sm border-b">
