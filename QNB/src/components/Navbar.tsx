@@ -134,7 +134,7 @@ const Navbar: React.FC = () => {
                     className={`font-medium transition duration-300 flex items-center ${
                       isActive('/analytics')
                         ? 'text-blue-800'
-                        : 'text-gray-600 hover:text-blue-800'
+                        : 'text-red-300 hover:text-blue-800'
                     }`}
                   >
                     <BarChart3 size={16} className="mr-1" />

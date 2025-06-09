@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, } from 'react';
 import PageHeader from '../components/PageHeader';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -112,84 +113,264 @@ const AnalyticsPage: React.FC = () => {
     }, 500);
   };
 
+  const downloadPDFReport = () => {
+    try {
+      setIsGeneratingReport(true);
+      setReportProgress(0);
+      
+      // Simulate report generation progress
+      const progressInterval = setInterval(() => {
+        setReportProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
 
+      // Add print-specific styles
+      const printStyles = `
+        <style>
+          @media print {
+            body * { visibility: hidden; }
+            .print-content, .print-content * { visibility: visible; }
+            .print-content { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+            .print-header { 
+              display: block !important; 
+              margin-bottom: 20px;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+            }
+            .print-section { 
+              page-break-inside: avoid; 
+              margin-bottom: 20px;
+              border: 1px solid #ddd;
+              padding: 10px;
+            }
+            .print-kpi-grid {
+              display: grid !important;
+              grid-template-columns: repeat(2, 1fr) !important;
+              gap: 10px !important;
+              margin-bottom: 20px;
+            }
+            .print-chart-placeholder {
+              height: 200px;
+              border: 1px dashed #ccc;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: #f9f9f9;
+            }
+          }
+        </style>
+      `;
 
- const downloadPDFReport = async () => {
-  try {
-    const apiKey = 'sk_af89d30f2e605c7d268f09a22bc5b1bc6cf694a1'; // Replace with your real PDFShift API key
-    const url = 'https://api.pdfshift.io/v3/convert/pdf';
+      // Create printable content
+      const printContent = `
+        ${printStyles}
+        <div class="print-content">
+          <div class="print-header">
+            <h1>Q.N.B Transport Analytics Report</h1>
+            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+            <p>Period: ${timePeriod === '7' ? 'Last 7 Days' : timePeriod === '30' ? 'Last 30 Days' : timePeriod === '90' ? 'Last Quarter' : 'Last Year'}</p>
+            <p>User: ${user?.name}</p>
+          </div>
+          
+          <div class="print-section">
+            <h2>Key Performance Indicators</h2>
+            <div class="print-kpi-grid">
+              <div>
+                <h3>Total Revenue</h3>
+                <p><strong>${stats.totalRevenue}</strong></p>
+                <p>+18.2% vs last period</p>
+              </div>
+              <div>
+                <h3>Total Shipments</h3>
+                <p><strong>${stats.totalShipments}</strong></p>
+                <p>+12.5% vs last period</p>
+              </div>
+              <div>
+                <h3>Customer Satisfaction</h3>
+                <p><strong>${stats.customerSatisfaction}/5</strong></p>
+                <p>+0.3 vs last period</p>
+              </div>
+              <div>
+                <h3>Market Share</h3>
+                <p><strong>${stats.marketShare}</strong></p>
+                <p>+2.1% vs last period</p>
+              </div>
+            </div>
+          </div>
 
-    const sourceUrl = 'https://en.wikipedia.org/wiki/PDF'; // Replace with your dynamic report HTML/URL
+          <div class="print-section">
+            <h2>Performance Metrics</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 8px;"><strong>On-Time Rate</strong></td>
+                <td style="padding: 8px;">${stats.onTimeRate}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 8px;"><strong>Average Transit Time</strong></td>
+                <td style="padding: 8px;">${stats.avgTransitTime} days</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 8px;"><strong>Cost per Shipment</strong></td>
+                <td style="padding: 8px;">${stats.costPerShipment}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 8px;"><strong>Carbon Footprint</strong></td>
+                <td style="padding: 8px;">${stats.carbonFootprint} tons CO2</td>
+              </tr>
+            </table>
+          </div>
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + btoa(apiKey + ':'),
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        source: sourceUrl,
-        landscape: false,
-        use_print: false
-      })
-    });
+          <div class="print-section">
+            <h2>Charts and Analytics</h2>
+            <p><em>Note: Interactive charts are available in the digital dashboard. This report contains key data points and insights.</em></p>
+            <div class="print-chart-placeholder">
+              <span>Shipment Volume Trends Chart</span>
+            </div>
+            <div class="print-chart-placeholder">
+              <span>Customer Segmentation Chart</span>
+            </div>
+          </div>
 
-    if (!response.ok) throw new Error('Failed to generate PDF');
+          <div class="print-section">
+            <h2>AI-Powered Insights</h2>
+            <div style="margin-bottom: 15px;">
+              <h3>Growth Opportunity</h3>
+              <p>E-commerce segment shows 45% growth potential. Consider expanding capacity in this sector for Q2.</p>
+              <p><strong>Priority:</strong> High</p>
+            </div>
+            <div style="margin-bottom: 15px;">
+              <h3>Efficiency Win</h3>
+              <p>US-Europe route efficiency improved by 12% after implementing AI routing. Apply to other routes.</p>
+              <p><strong>Status:</strong> Implemented</p>
+            </div>
+            <div style="margin-bottom: 15px;">
+              <h3>Risk Alert</h3>
+              <p>Africa route showing 15% delay increase. Weather patterns and infrastructure issues detected.</p>
+              <p><strong>Action:</strong> Monitor</p>
+            </div>
+          </div>
+        </div>
+      `;
 
-    const blob = await response.blob();
-    const pdfUrl = URL.createObjectURL(blob);
+      // Create a new window with the print content
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Q.N.B Transport Analytics Report</title>
+              <meta charset="utf-8">
+            </head>
+            <body>
+              ${printContent}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
 
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `report-${new Date().toISOString().split('T')[0]}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(pdfUrl);
+        // Wait a moment for content to load, then print
+        setTimeout(() => {
+          setReportProgress(100);
+          printWindow.print();
+          
+          // Close the report modal after a short delay
+          setTimeout(() => {
+            printWindow.close();
+            closeReportModal();
+          }, 500);
+        }, 500);
+      } else {
+        throw new Error('Unable to open print dialog');
+      }
+    } catch (error) {
+      console.error('Error printing PDF:', error);
+      alert('Failed to generate PDF. Please check your browser settings and try again.');
+      setIsGeneratingReport(false);
+      setReportProgress(0);
+    }
+  };
 
-    closeReportModal();
-  } catch (error) {
-    console.error('Error downloading PDF:', error);
-  }
-};
+  const downloadExcelReport = () => {
+    try {
+      setIsGeneratingReport(true);
+      setReportProgress(0);
 
+      // Simulate report generation progress
+      const progressInterval = setInterval(() => {
+        setReportProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
 
+      // Create CSV content (Excel-compatible)
+      const csvContent = [
+        'Q.N.B Transport Analytics Report',
+        `Generated on: ${new Date().toLocaleDateString()}`,
+        `Period: ${timePeriod === '7' ? 'Last 7 Days' : timePeriod === '30' ? 'Last 30 Days' : timePeriod === '90' ? 'Last Quarter' : 'Last Year'}`,
+        '',
+        'Key Performance Indicators',
+        'Metric,Value,Change',
+        `Total Revenue,${stats.totalRevenue},+18.2%`,
+        `Total Shipments,${stats.totalShipments},+12.5%`,
+        `Customer Satisfaction,${stats.customerSatisfaction}/5,+0.3`,
+        `Market Share,${stats.marketShare},+2.1%`,
+        '',
+        'Performance Metrics',
+        'Metric,Value',
+        `On-Time Rate,${stats.onTimeRate}`,
+        `Average Transit Time,${stats.avgTransitTime} days`,
+        `Cost per Shipment,${stats.costPerShipment}`,
+        `Carbon Footprint,${stats.carbonFootprint} tons CO2`,
+        '',
+        'AI Insights',
+        'Type,Description,Priority',
+        'Growth Opportunity,E-commerce segment shows 45% growth potential,High',
+        'Efficiency Win,US-Europe route efficiency improved by 12%,Implemented',
+        'Risk Alert,Africa route showing 15% delay increase,Monitor'
+      ].join('\n');
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `QNB_Analytics_Report_${new Date().getTime()}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+
+      setTimeout(() => {
+        setReportProgress(100);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => {
+          closeReportModal();
+        }, 500);
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error generating Excel report:', error);
+      alert('Failed to generate Excel report. Please try again.');
+      setIsGeneratingReport(false);
+      setReportProgress(0);
+    }
+  };
 
   const navigateToDashboard = () => {
     closeReportModal();
     // Replace with your actual routing logic
     console.log('Navigating to dashboard...');
-  };
-
-  const downloadExcelReport = async () => {
-    try {
-      const response = await fetch('/api/reports/download-excel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reportData: yourReportData,
-          filters: currentFilters,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to generate Excel');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `report-${new Date().toISOString().split('T')[0]}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      closeReportModal();
-    } catch (error) {
-      console.error('Error downloading Excel:', error);
-    }
   };
 
   const closeReportModal = () => {
@@ -920,36 +1101,33 @@ const AnalyticsPage: React.FC = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  {reportType === 'pdf' && (
-                   <button
+                 {reportType === 'excel' ? (
+                  <button
+                    onClick={downloadExcelReport}
+                    disabled={isGeneratingReport}
+                    className={`w-full flex items-center justify-center px-4 py-3 rounded-lg ${
+                      isGeneratingReport
+                        ? 'bg-gray-300 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    } transition duration-300`}
+                  >
+                    <FileSpreadsheet size={18} className="mr-2" />
+                    {isGeneratingReport ? 'Generating Excel...' : 'Download Excel Report'}
+                  </button>
+                ) : reportType === 'pdf' ? (
+                  <button
                     onClick={downloadPDFReport}
                     disabled={isGeneratingReport}
                     className={`w-full flex items-center justify-center px-4 py-3 rounded-lg ${
                       isGeneratingReport
-                        ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                        : 'bg-blue-800 hover:bg-blue-900 text-white'
+                        ? 'bg-gray-300 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                     } transition duration-300`}
                   >
                     <FileText size={18} className="mr-2" />
                     {isGeneratingReport ? 'Generating PDF...' : 'Download PDF Report'}
                   </button>
-
-                  )}
-                  
-                  {reportType === 'excel' && (
-                    <button
-                      onClick={downloadExcelReport}
-                      disabled={isGeneratingReport}
-                      className={`w-full flex items-center justify-center px-4 py-3 rounded-lg ${
-                        isGeneratingReport
-                          ? 'bg-gray-300 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700 text-white'
-                      } transition duration-300`}
-                    >
-                      <FileSpreadsheet size={18} className="mr-2" />
-                      {isGeneratingReport ? 'Generating Excel...' : 'Download Excel Report'}
-                    </button>
-                  )}
+                ) : null}
                   
                   {reportType === 'dashboard' && (
                     <button
@@ -982,4 +1160,4 @@ const AnalyticsPage: React.FC = () => {
   );
 };
 
-export default AnalyticsPage;
+export default AnalyticsPage; 

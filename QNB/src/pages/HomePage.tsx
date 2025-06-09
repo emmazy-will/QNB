@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Truck, Plane, Droplet, Building, CheckCircle, Globe, Users, Package } from 'lucide-react';
-import video from '../images/video.mp4'; // Adjust the path as necessary
+import video from '../images/Dynamic_Charts_And_Graphs_preview_1082505.mp4'; // Adjust the path as necessary
 import transit from '../images/transmit.avif'
 
 const HomePage: React.FC = () => {

@@ -9,5 +9,28 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Add this to your HTML <head> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const downloadPDFReport = () => {
+      try {
+        // Load jsPDF from CDN (no npm install)
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Add content
+        doc.text("My Report", 10, 10);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 10, 20);
+
+        // Save PDF
+        doc.save(`report-${new Date().toISOString().split('T')[0]}.pdf`);
+
+        closeReportModal();
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF: ' + error.message);
+      }
+    };
+  </script>
   </body>
 </html>
