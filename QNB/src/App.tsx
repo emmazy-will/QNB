@@ -8,6 +8,7 @@ import ServicesPage from './pages/ServicesPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import Notification from './pages/NotificationsPage';
 import ContactPage from './pages/ContactPage';
+import Garllary from './pages/Garllary';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/services" element={<ServicesPage />} />
+              <Route path="/garllary" element={<Garllary />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/notification" element={<Notification />} />
