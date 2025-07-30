@@ -1,7 +1,7 @@
 // app/gallery/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 type MediaItem = {
   id: string;
@@ -133,128 +133,215 @@ const MediaThumbnail = ({ item, fixedHeight = true }: { item: MediaItem; fixedHe
   </div>
 );
 
-const MediaModal = ({ item, onClose }: { item: MediaItem; onClose: () => void }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4">
-    <div className="relative max-w-6xl w-full max-h-full" onClick={(e) => e.stopPropagation()}>
-      <button 
-        className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10"
-        onClick={onClose}
-        aria-label="Close modal"
+const MediaModal = ({ item, onClose }: { item: MediaItem; onClose: () => void }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 100) {
+      onClose();
+    }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onClick={handleBackdropClick}
+    >
+      <div 
+        className="relative w-full max-w-4xl max-h-full"
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
       >
-        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      
-      <div className="bg-black rounded-xl overflow-hidden flex flex-col h-full">
-        <div className="flex-grow flex items-center justify-center p-4">
-          {item.type === 'image' ? (
-            <img
-              src={item.src}
-              alt={item.alt || item.caption || 'Gallery image'}
-              className="max-w-full max-h-[80vh] object-contain"
-            />
-          ) : (
-            <video
-              src={item.src}
-              className="max-w-full max-h-[80vh]"
-              controls
-              autoPlay
-            />
-          )}
-        </div>
+        <button 
+          className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          aria-label="Close modal"
+        >
+          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         
-        <div className="bg-gray-900 p-6 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-bold mb-1">{item.caption}</h2>
-              <div className="flex gap-4 text-sm text-gray-300">
-                <span className="capitalize">{item.type}</span>
-                <span className="capitalize">{item.category}</span>
-                <span>
-                  {new Date(item.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
-            </div>
-            <button 
-              onClick={onClose}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-            >
-              Close
-            </button>
+        <div className="bg-black rounded-xl overflow-hidden flex flex-col h-full">
+          <div className="flex-grow flex items-center justify-center p-4">
+            {item.type === 'image' ? (
+              <img
+                src={item.src}
+                alt={item.alt || item.caption || 'Gallery image'}
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            ) : (
+              <video
+                src={item.src}
+                className="max-w-full max-h-[80vh]"
+                controls
+                autoPlay
+              />
+            )}
           </div>
-          {item.alt && (
-            <p className="mt-3 text-gray-300">{item.alt}</p>
-          )}
+          
+          <div className="bg-gray-900 p-6 text-white">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold mb-1">{item.caption}</h2>
+                <div className="flex gap-4 text-sm text-gray-300">
+                  <span className="capitalize">{item.type}</span>
+                  <span className="capitalize">{item.category}</span>
+                  <span>
+                    {new Date(item.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Close
+              </button>
+            </div>
+            {item.alt && (
+              <p className="mt-3 text-gray-300">{item.alt}</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const AlbumModal = ({ items, onClose, onItemSelect }: { 
   items: MediaItem[]; 
   onClose: () => void;
   onItemSelect: (item: MediaItem) => void;
-}) => (
-  <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4">
-    <div className="relative max-w-6xl w-full max-h-full" onClick={(e) => e.stopPropagation()}>
-      <button 
-        className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10"
-        onClick={onClose}
-        aria-label="Close modal"
+}) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 100) {
+      onClose();
+    }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onClick={handleBackdropClick}
+    >
+      <div 
+        className="relative w-full max-w-4xl h-full"
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
       >
-        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      
-      <div className="bg-black rounded-xl overflow-hidden flex flex-col h-full">
-        <div className="flex-grow p-4 overflow-y-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {items.map((item) => (
-              <div 
-                key={item.id}
-                className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer"
-                onClick={() => onItemSelect(item)}
-              >
-                <MediaThumbnail item={item} fixedHeight={false} />
-                <div className="p-3">
-                  <h3 className="font-medium line-clamp-1">{item.caption}</h3>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <button 
+          className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          aria-label="Close modal"
+        >
+          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         
-        <div className="bg-gray-900 p-4 text-white border-t border-gray-700">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-bold">Album ({items.length} items)</h2>
-              <p className="text-sm text-gray-300">
-                {new Date(items[0].date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
+        <div className="bg-black rounded-xl overflow-hidden flex flex-col h-full">
+          <div className="flex-grow overflow-y-auto p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {items.map((item) => (
+                <div 
+                  key={item.id}
+                  className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onItemSelect(item);
+                  }}
+                >
+                  <MediaThumbnail item={item} fixedHeight={false} />
+                  <div className="p-3">
+                    <h3 className="font-medium line-clamp-1">{item.caption}</h3>
+                  </div>
+                </div>
+              ))}
             </div>
-            <button 
-              onClick={onClose}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-            >
-              Close
-            </button>
+          </div>
+          
+          <div className="bg-gray-900 p-4 text-white border-t border-gray-700">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-bold">Album ({items.length} items)</h2>
+                <p className="text-sm text-gray-300">
+                  {new Date(items[0].date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function Gallery() {
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
@@ -529,7 +616,14 @@ export default function Gallery() {
               Try adjusting your search or filter settings to discover more content.
             </p>
             <div className="mt-6">
-              <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+              <button 
+                onClick={() => {
+                  setActiveCategory('all');
+                  setSearchTerm('');
+                  setMediaTypeFilter('all');
+                }}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
                 Reset Filters
               </button>
             </div>
